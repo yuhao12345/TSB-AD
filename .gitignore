@@ -1,0 +1,20 @@
+# Distribution / packaging
+*.egg-info/
+
+# Environments
+.venv
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+*.png
+
+# The whole dataset
+data0/
+
+test_anomaly_detectors.py
+test_artificialConstruction.py
+test_transformer.py
