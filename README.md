@@ -44,7 +44,8 @@ test_anomaly_detectors.ipynb, test_artificialConstruction.ipynb, and test_transf
 In ./data contains four folders: 
 
 1. benchmark/ contains ten public datasets
-2. UCR2018-NEW/ contains 128 subfolders 
-3. artificial/ contains the data that are constructed based on UCR2018-NEW
-4. synthetic/ contains the data that are synthesized by local and global tranformations
+<img width="500" src="./docs/display_data.png"/>
+3. UCR2018-NEW/ contains 128 subfolders 
+4. artificial/ contains the data that are constructed based on UCR2018-NEW
+5. synthetic/ contains the data that are synthesized by local and global tranformations
 
