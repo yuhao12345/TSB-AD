@@ -1,9 +1,9 @@
 import numpy as np
 import networkx as nx 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import math
 from .sbd_distance import _sbd
-from sklearn.decomposition import PCA
+# from sklearn.decomposition import PCA
 
 
 #   SBD distance matrix
@@ -35,8 +35,10 @@ def construct_sbd_matrix(X_train, y_train):
     adjacencyMatrix = (confusionMatrix + confusionMatrix.T)/2 + 1e-3
     # np.fill_diagonal(adjacencyMatrix,0)
     return adjacencyMatrix
+
+
 #   clustering based on max-spanning-tree
-def clustering_mst(adjacencyMatrix, plot_graph=False):
+def clustering_mst(adjacencyMatrix):
     G = nx.from_numpy_matrix(adjacencyMatrix, parallel_edges=False)
     T = nx.maximum_spanning_tree(G,weight='weight')
         
@@ -59,8 +61,9 @@ def clustering_mst(adjacencyMatrix, plot_graph=False):
     labelList = np.array(labelList)
     return labelList
 
+
 #   construct anomaly based on 2 clusters
-def construct_anomaly(X_train, y_train, clusterIndex, K=3, anomalyRatio=0.05, seed=0, plot_nor_ano=False, plot_nor_ano_pca=False):
+def construct_anomaly(X_train, y_train, clusterIndex, K=3, anomalyRatio=0.05, seed=0, return_statistics=False):
     np.random.seed(seed)
     
     # K is num_anomaly, get num of normal
@@ -110,89 +113,74 @@ def construct_anomaly(X_train, y_train, clusterIndex, K=3, anomalyRatio=0.05, se
     y_new = y_new[order]
     y_new = np.repeat(y_new, len(X_train[0]))
     
-    # RC 
-    X_nor = X_train[nor_index_selected]
-    X_ano = X_train[ano_index_selected]
-    X_tot = np.concatenate((X_nor, X_ano), axis=0)
     
-    n = len(X_tot)
-    sbd_matrix = np.zeros([n,n])
-    for i in range(n):
-        for j in range(i+1,n):
-            sbd_matrix[i,j] = max(_sbd(X_tot[i], X_tot[j])[0],0)
-            sbd_matrix[j,i] = sbd_matrix[i,j]
-    np.fill_diagonal(sbd_matrix, 5)
-    
-    min_ = np.min(sbd_matrix, 0)
-    mean_ = (np.sum(sbd_matrix,0)-5)/(len(sbd_matrix)-1)
-    cr = np.mean(mean_)/np.mean(min_)
-
-    # NC
-    nor_dist_array = sbd_matrix[:len(X_nor), :len(X_nor)].ravel()
-    nor_dist_array = nor_dist_array[nor_dist_array<2]
-    avg_nor = np.mean(nor_dist_array)
-    
-    ano_dist_array = sbd_matrix[len(X_nor):n, len(X_nor):n].ravel()
-    ano_dist_array = ano_dist_array[ano_dist_array<2]
-    avg_ano = np.mean(ano_dist_array)
-    
-    nc = np.sqrt(avg_nor/avg_ano)
-    
-    # NA
-    if num_nor_label==1:
-        na = 1
-    else:
-        # split index according to label
-        cluster_index_basedon_label_ano = []
-        for i in np.unique(ano_label_selected):
-            cluster_index_basedon_label_ano.append(ano_index_selected[np.where(ano_label_selected==i)])
+    if return_statistics:
+        # RC 
+        X_nor = X_train[nor_index_selected]
+        X_ano = X_train[ano_index_selected]
+        X_tot = np.concatenate((X_nor, X_ano), axis=0)
         
-        cluster_index_basedon_label_nor = []
-        for i in np.unique(nor_labels_selected):
-            cluster_index_basedon_label_nor.append(nor_index_selected[np.where(nor_labels_selected==i)])
+        n = len(X_tot)
+        sbd_matrix = np.zeros([n,n])
+        for i in range(n):
+            for j in range(i+1,n):
+                sbd_matrix[i,j] = max(_sbd(X_tot[i], X_tot[j])[0],0)
+                sbd_matrix[j,i] = sbd_matrix[i,j]
+        np.fill_diagonal(sbd_matrix, 5)
+        
+        min_ = np.min(sbd_matrix, 0)
+        mean_ = (np.sum(sbd_matrix,0)-5)/(len(sbd_matrix)-1)
+        cr = np.mean(mean_)/np.mean(min_)
+    
+        # NC
+        nor_dist_array = sbd_matrix[:len(X_nor), :len(X_nor)].ravel()
+        nor_dist_array = nor_dist_array[nor_dist_array<2]
+        avg_nor = np.mean(nor_dist_array)
+        
+        ano_dist_array = sbd_matrix[len(X_nor):n, len(X_nor):n].ravel()
+        ano_dist_array = ano_dist_array[ano_dist_array<2]
+        avg_ano = np.mean(ano_dist_array)
+        
+        nc = np.sqrt(avg_nor/avg_ano)
+        
+        # NA
+        if num_nor_label==1:
+            na = 1
+        else:
+            # split index according to label
+            cluster_index_basedon_label_ano = []
+            for i in np.unique(ano_label_selected):
+                cluster_index_basedon_label_ano.append(ano_index_selected[np.where(ano_label_selected==i)])
             
-            
-        # get centroids for nor and ano
-        centroids_ano = []
-        for i in cluster_index_basedon_label_ano:
-            centroids_ano.append(np.mean(X_train[i], axis=0))
-            
-        centroids_nor = []
-        for i in cluster_index_basedon_label_nor:
-            centroids_nor.append(np.mean(X_train[i], axis=0))
-            
-        # dist between centroids of nor and ano
-        dist_nor_ano = []
-        for i in centroids_ano:
-            for j in centroids_nor:
-                dist_nor_ano.append(max(_sbd(i,j)[0],0))
-            
-        # dist between centroids of nor and nor
-        dist_nor_nor = []
-        for i in range(len(centroids_nor)):
-            for j in range(i+1,len(centroids_nor)):
-                dist_nor_nor.append(max(_sbd(centroids_nor[i],centroids_nor[j])[0],0))
+            cluster_index_basedon_label_nor = []
+            for i in np.unique(nor_labels_selected):
+                cluster_index_basedon_label_nor.append(nor_index_selected[np.where(nor_labels_selected==i)])
                 
-        na = np.min(dist_nor_ano)/np.mean(dist_nor_nor)
+                
+            # get centroids for nor and ano
+            centroids_ano = []
+            for i in cluster_index_basedon_label_ano:
+                centroids_ano.append(np.mean(X_train[i], axis=0))
+                
+            centroids_nor = []
+            for i in cluster_index_basedon_label_nor:
+                centroids_nor.append(np.mean(X_train[i], axis=0))
+                
+            # dist between centroids of nor and ano
+            dist_nor_ano = []
+            for i in centroids_ano:
+                for j in centroids_nor:
+                    dist_nor_ano.append(max(_sbd(i,j)[0],0))
+                
+            # dist between centroids of nor and nor
+            dist_nor_nor = []
+            for i in range(len(centroids_nor)):
+                for j in range(i+1,len(centroids_nor)):
+                    dist_nor_nor.append(max(_sbd(centroids_nor[i],centroids_nor[j])[0],0))
+                    
+            na = np.min(dist_nor_ano)/np.mean(dist_nor_nor)
         
-    if plot_nor_ano:
-        plt.figure()
-        plt.subplot(2,1,1)
-        plt.plot(X_train[ano_index_selected].T)
-        plt.subplot(2,1,2)
-        plt.plot(X_train[nor_index_selected].T)
+        return X_new, y_new, len(X_train[0]), round(cr,2), round(nc,2), round(na,2)
     
-    if plot_nor_ano_pca:
-        label_tot = y_train[np.concatenate((ano_index_selected, nor_index_selected))]
-        pca = PCA(n_components=2)
-        pca_result = pca.fit_transform(X_tot)
-        
-        plt.figure()
-        for i in range(len(pca_result)):
-            x = pca_result[i][0]
-            y = pca_result[i][1]
-            plt.plot(x, y, 'bo')
-            plt.text(x * (1 + 0.05), y * (1 + 0.05) , label_tot[i], fontsize=12)
-        
-    return X_new, y_new, len(X_train[0]), round(cr,2), round(nc,2), round(na,2)
+    return X_new, y_new
 
