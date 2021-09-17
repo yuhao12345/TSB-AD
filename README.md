@@ -38,14 +38,32 @@ pip install .
 ```
 
 ## Examples
-test_anomaly_detectors.ipynb, test_artificialConstruction.ipynb, and test_transformer.ipynb summarize the main contributions of this project.
-
+* test_anomaly_detectors.ipynb : The performance of 10 popular anomaly detectors. 
+* test_artificialConstruction.ipynb: The synthesized dataset based on anomaly construction. 
+* test_transformer.ipynb: The effects of 11 transformations.
 ## Benchmark 
 In ./data contains four folders: 
 
-1. benchmark/ contains ten public datasets
-<img width="500" src="./docs/display_data.png"/>
-3. UCR2018-NEW/ contains 128 subfolders 
-4. artificial/ contains the data that are constructed based on UCR2018-NEW
-5. synthetic/ contains the data that are synthesized by local and global tranformations
+* benchmark/ contains ten public datasets. Below shows some typical outliers in these ten datasets.
+<img width="1000" src="./doc/display_data.png"/>
+
+* UCR2018-NEW/ contains 128 subfolders 
+
+* artificial/ contains the data that are constructed based on UCR2018-NEW
+<img width="500" src="./result/transform_subsequence.png"/>
+
+* synthetic/ contains the data that are synthesized by local and global tranformations
+<img width="500" src="./result/transform_global.png"/>
+<img width="500" src="./result/transform_local.png"/>
+
+## Anomaly Detector
+We test ten algorithms in the module.
+
+Below shows a result based on Autoencoder.
+
+For each output figure, the left panel shows the real time series with outliers (red), anomaly score obtained by each anomaly detector, and the correpsonding TP/FP/TN/FN classification.
+
+The right panel shows the ROC curve. AUC represents the area under the ROC curve. Larger AUC indicates better performance.
+
+<img width="500" src="./result/AE.png"/>
 
