@@ -46,14 +46,26 @@ def clustering_mst(adjacencyMatrix):
     labelList = [-1]*n_label
     labelList[0] = 0
     
-    while min(labelList)==-1:
-        for nd in range(n_label):
-            if labelList[nd]!=-1:
-                # print(nd)
-                for a in T.neighbors(nd):
-                    if labelList[a] == -1:
-                        labelList[a] = 1-labelList[nd]
-                        # print(a)     
+    # while min(labelList)==-1:  # as long as there is one un-visited node
+    #     for nd in range(n_label):
+    #         if labelList[nd]!=-1:   # go through all visited node so far
+    #             # print(nd)
+    #             for a in T.neighbors(nd):  # look at all neighbors of nd
+    #                 if labelList[a] == -1:     # if this neighbor has not been visited
+    #                     labelList[a] = 1-labelList[nd]   # use opposite color
+                
+    # BFS
+    visited = [0]
+    queue = [0]
+    while queue:
+        s = queue.pop(0)
+        for neighbor in T.neighbors(s):
+            if neighbor not in visited:
+                visited.append(neighbor)
+                queue.append(neighbor)
+                labelList[neighbor] = 1 - labelList[s]
+                
+                
     if len(np.unique(labelList))!=2:
         print('Class Separation Error')
         return
